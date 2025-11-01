@@ -27,6 +27,18 @@ class TodoApp {
         ];
     }
 
+    updateStats() {
+        const total = this.tasks.length;
+        const completed = this.tasks.filter(task => task.completed).length;
+        const active = total - completed;
+        
+        const statsText = document.getElementById('statsText');
+        if (statsText) {
+            statsText.textContent = `${active}/${total}`;
+            statsText.title = `Активных: ${active}, Выполненных: ${completed}`;
+        }
+    }
+
     checkMobile() {
         return window.innerWidth <= 768;
     }
