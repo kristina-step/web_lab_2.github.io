@@ -17,28 +17,6 @@ class TodoApp {
         this.setupResponsive();
     }
 
-    setupCategories() {
-        this.categories = [
-            { id: 'personal', name: 'Личные', color: '#ff6b00' },
-            { id: 'work', name: 'Работа', color: '#4facfe' },
-            { id: 'shopping', name: 'Покупки', color: '#28a745' },
-            { id: 'health', name: 'Здоровье', color: '#dc3545' },
-            { id: 'other', name: 'Другое', color: '#6c757d' }
-        ];
-    }
-
-    updateStats() {
-        const total = this.tasks.length;
-        const completed = this.tasks.filter(task => task.completed).length;
-        const active = total - completed;
-        
-        const statsText = document.getElementById('statsText');
-        if (statsText) {
-            statsText.textContent = `${active}/${total}`;
-            statsText.title = `Активных: ${active}, Выполненных: ${completed}`;
-        }
-    }
-
     checkMobile() {
         return window.innerWidth <= 768;
     }
@@ -60,12 +38,14 @@ class TodoApp {
 
         const container = this.createElement('div', {className: 'container'});
         
+        // Header
         const header = this.createElement('div', {className: 'header'});
         const h1 = this.createElement('h1', {textContent: this.isMobile ? '🎃 ToDo 👻' : '🎃 Хэллуин ToDo 👻'});
         const p = this.createElement('p', {textContent: this.isMobile ? 'Жуткие задачи' : 'Управляйте своими жуткими задачами!'});
         header.appendChild(h1);
         header.appendChild(p);
 
+        // Form
         const todoForm = this.createElement('div', {className: 'todo-form'});
         const formGroup = this.createElement('div', {className: 'form-group'});
         
@@ -92,8 +72,10 @@ class TodoApp {
         formGroup.appendChild(addButton);
         todoForm.appendChild(formGroup);
 
+        // Controls
         const controls = this.createElement('div', {className: 'controls'});
         
+        // Filter
         const filterGroup = this.createElement('div', {className: 'control-group'});
         const filterLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔮' : '🔮 Фильтр:'});
         const filterSelect = this.createElement('select', {className: 'control-select', id: 'filterSelect'});
@@ -112,6 +94,7 @@ class TodoApp {
         filterGroup.appendChild(filterLabel);
         filterGroup.appendChild(filterSelect);
 
+        // Sort
         const sortGroup = this.createElement('div', {className: 'control-group'});
         const sortLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🦇' : '🦇 Сортировка:'});
         const sortSelect = this.createElement('select', {className: 'control-select', id: 'sortSelect'});
@@ -130,6 +113,7 @@ class TodoApp {
         sortGroup.appendChild(sortLabel);
         sortGroup.appendChild(sortSelect);
 
+        // Search
         const searchGroup = this.createElement('div', {className: 'control-group'});
         const searchLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔍' : '🔍 Поиск:'});
         const searchInput = this.createElement('input', {
@@ -142,9 +126,26 @@ class TodoApp {
         searchGroup.appendChild(searchLabel);
         searchGroup.appendChild(searchInput);
 
+        // Bulk Actions
+        const bulkGroup = this.createElement('div', {className: 'control-group'});
+        const selectAllBtn = this.createElement('button', {
+            className: 'btn btn-secondary',
+            textContent: '☑ Все',
+            id: 'selectAllBtn'
+        });
+        const clearCompletedBtn = this.createElement('button', {
+            className: 'btn btn-secondary',
+            textContent: '🧹 Очистить',
+            id: 'clearCompletedBtn'
+        });
+        
+        bulkGroup.appendChild(selectAllBtn);
+        bulkGroup.appendChild(clearCompletedBtn);
+
         controls.appendChild(filterGroup);
         controls.appendChild(sortGroup);
         controls.appendChild(searchGroup);
+        controls.appendChild(bulkGroup);
 
         const todoList = this.createElement('div', {className: 'todo-list', id: 'todoList'});
 
@@ -253,6 +254,19 @@ class TodoApp {
             .btn-primary:hover {
                 background: linear-gradient(135deg, #ff4500 0%, #660000 100%);
                 transform: translateY(-2px);
+            }
+
+            .btn-secondary {
+                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+                color: white;
+                border: 1px solid #dee2e6;
+                padding: 8px 12px;
+                font-size: 14px;
+                width: auto;
+            }
+
+            .btn-secondary:hover {
+                background: linear-gradient(135deg, #5a6268 0%, #3d4348 100%);
             }
 
             .controls {
@@ -491,6 +505,10 @@ class TodoApp {
                     padding: 12px 25px;
                 }
 
+                .btn-secondary {
+                    padding: 10px 15px;
+                }
+
                 .controls {
                     padding: 20px 30px;
                     gap: 15px;
@@ -597,10 +615,13 @@ class TodoApp {
                 .controls {
                     padding: 10px;
                     gap: 8px;
+                    flex-direction: column;
                 }
 
                 .control-group {
                     min-width: 100px;
+                    width: 100%;
+                    justify-content: space-between;
                 }
 
                 .control-label {
@@ -610,6 +631,13 @@ class TodoApp {
                 .control-select,
                 .control-input {
                     padding: 6px 8px;
+                    font-size: 12px;
+                    width: 60%;
+                }
+
+                .btn-secondary {
+                    width: 48%;
+                    padding: 8px 10px;
                     font-size: 12px;
                 }
 
@@ -668,24 +696,6 @@ class TodoApp {
                 .btn-edit:active,
                 .btn-delete:active {
                     transform: scale(0.98);
-                }
-            }
-
-            @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-                .form-input,
-                .control-select,
-                .control-input,
-                .edit-input {
-                    border-width: 1.5px;
-                }
-            }
-
-            @media (prefers-color-scheme: dark) {
-                .form-input,
-                .control-select,
-                .control-input,
-                .edit-input {
-                    color-scheme: dark;
                 }
             }
         `;
@@ -764,14 +774,7 @@ class TodoApp {
             clearTimeout(pressTimer);
         });
     }
-    selectAllTasks() {
-        const allCompleted = this.tasks.every(task => task.completed);
-        this.tasks.forEach(task => {
-            task.completed = !allCompleted;
-        });
-        this.saveTasks();
-        this.renderTasks();
-    }
+
     showMobileContextMenu(taskElement, event) {
         event.preventDefault();
         
@@ -809,6 +812,9 @@ class TodoApp {
             this.currentSearch = e.target.value.toLowerCase();
             this.renderTasks();
         });
+
+        document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllTasks());
+        document.getElementById('clearCompletedBtn').addEventListener('click', () => this.clearCompletedTasks());
     }
 
     addTask() {
@@ -851,6 +857,29 @@ class TodoApp {
         const task = this.tasks.find(t => t.id === taskId);
         if (task) {
             task.completed = !task.completed;
+            this.saveTasks();
+            this.renderTasks();
+        }
+    }
+
+    selectAllTasks() {
+        const allCompleted = this.tasks.every(task => task.completed);
+        this.tasks.forEach(task => {
+            task.completed = !allCompleted;
+        });
+        this.saveTasks();
+        this.renderTasks();
+    }
+
+    clearCompletedTasks() {
+        const completedTasks = this.tasks.filter(task => task.completed);
+        if (completedTasks.length === 0) {
+            alert('🎃 Нет выполненных задач для очистки!');
+            return;
+        }
+
+        if (confirm(`🧹 Удалить ${completedTasks.length} выполненных задач?`)) {
+            this.tasks = this.tasks.filter(task => !task.completed);
             this.saveTasks();
             this.renderTasks();
         }
