@@ -764,7 +764,14 @@ class TodoApp {
             clearTimeout(pressTimer);
         });
     }
-
+    selectAllTasks() {
+        const allCompleted = this.tasks.every(task => task.completed);
+        this.tasks.forEach(task => {
+            task.completed = !allCompleted;
+        });
+        this.saveTasks();
+        this.renderTasks();
+    }
     showMobileContextMenu(taskElement, event) {
         event.preventDefault();
         
