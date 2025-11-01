@@ -20,3 +20,6 @@
 - Local Storage API
 - Drag and Drop API
 
+https://kristina-step.github.io/web_lab_2.github.io/
+
+Степкина Кристина Владимировна
