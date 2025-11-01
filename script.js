@@ -17,6 +17,16 @@ class TodoApp {
         this.setupResponsive();
     }
 
+    setupCategories() {
+        this.categories = [
+            { id: 'personal', name: 'Личные', color: '#ff6b00' },
+            { id: 'work', name: 'Работа', color: '#4facfe' },
+            { id: 'shopping', name: 'Покупки', color: '#28a745' },
+            { id: 'health', name: 'Здоровье', color: '#dc3545' },
+            { id: 'other', name: 'Другое', color: '#6c757d' }
+        ];
+    }
+
     checkMobile() {
         return window.innerWidth <= 768;
     }
