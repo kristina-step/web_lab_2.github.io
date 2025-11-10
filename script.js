@@ -1,3 +1,6 @@
+import { createElement, createButton, createInput, createSelect } from './elements.js';
+import { Modal } from './modal.js';
+
 class TodoApp {
     constructor() {
         this.tasks = this.loadTasks();
@@ -5,15 +8,14 @@ class TodoApp {
         this.currentSort = 'date-desc';
         this.currentSearch = '';
         this.isMobile = this.checkMobile();
+        this.modal = new Modal();
         this.init();
     }
 
     init() {
         this.createAppStructure();
-        this.applyHalloweenStyles();
         this.renderTasks();
         this.bindEvents();
-        this.addHalloweenEffects();
         this.setupResponsive();
     }
 
@@ -33,38 +35,35 @@ class TodoApp {
     }
 
     createAppStructure() {
-        const app = document.getElementById('app') || this.createElement('div', {id: 'app'});
+        const app = document.getElementById('app') || createElement('div', {id: 'app'});
         document.body.appendChild(app);
 
-        const container = this.createElement('div', {className: 'container'});
+        const container = createElement('div', {className: 'container'});
         
-        // Header
-        const header = this.createElement('div', {className: 'header'});
-        const h1 = this.createElement('h1', {textContent: this.isMobile ? '🎃 ToDo 👻' : '🎃 Хэллуин ToDo 👻'});
-        const p = this.createElement('p', {textContent: this.isMobile ? 'Жуткие задачи' : 'Управляйте своими жуткими задачами!'});
+        const header = createElement('div', {className: 'header'});
+        const h1 = createElement('h1', {textContent: this.isMobile ? '🎃 ToDo 👻' : '🎃 Хэллуин ToDo 👻'});
+        const p = createElement('p', {textContent: this.isMobile ? 'Жуткие задачи' : 'Управляйте своими жуткими задачами!'});
         header.appendChild(h1);
         header.appendChild(p);
 
-        // Form
-        const todoForm = this.createElement('div', {className: 'todo-form'});
-        const formGroup = this.createElement('div', {className: 'form-group'});
+        const todoForm = createElement('div', {className: 'todo-form'});
+        const formGroup = createElement('div', {className: 'form-group'});
         
-        const taskInput = this.createElement('input', {
+        const taskInput = createInput({
             type: 'text',
-            className: 'form-input',
             placeholder: this.isMobile ? 'Новая задача...' : 'Добавьте жуткую задачу...',
             id: 'taskInput'
         });
         
-        const dateInput = this.createElement('input', {
+        const dateInput = createInput({
             type: 'date',
-            className: 'form-input',
             id: 'dateInput'
         });
         
-        const addButton = this.createElement('button', {
-            className: 'btn btn-primary',
-            textContent: this.isMobile ? '🎃 Добавить' : '🎃 Добавить задачу'
+        const addButton = createButton({
+            text: this.isMobile ? '🎃 Добавить' : '🎃 Добавить задачу',
+            className: 'btn-primary',
+            onClick: () => this.addTask()
         });
         
         formGroup.appendChild(taskInput);
@@ -72,51 +71,47 @@ class TodoApp {
         formGroup.appendChild(addButton);
         todoForm.appendChild(formGroup);
 
-        // Controls
-        const controls = this.createElement('div', {className: 'controls'});
+        const controls = createElement('div', {className: 'controls'});
         
-        // Filter
-        const filterGroup = this.createElement('div', {className: 'control-group'});
-        const filterLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔮' : '🔮 Фильтр:'});
-        const filterSelect = this.createElement('select', {className: 'control-select', id: 'filterSelect'});
-        
-        const filterOptions = [
-            {value: 'all', text: this.isMobile ? 'Все' : 'Все задания'},
-            {value: 'active', text: this.isMobile ? 'Активные' : 'Активные'},
-            {value: 'completed', text: this.isMobile ? 'Готово' : 'Завершённые'}
-        ];
-        
-        filterOptions.forEach(option => {
-            const optElement = this.createElement('option', {value: option.value, textContent: option.text});
-            filterSelect.appendChild(optElement);
+        const filterGroup = createElement('div', {className: 'control-group'});
+        const filterLabel = createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔮' : '🔮 Фильтр:'});
+        const filterSelect = createSelect({
+            options: [
+                {value: 'all', text: this.isMobile ? 'Все' : 'Все задания'},
+                {value: 'active', text: this.isMobile ? 'Активные' : 'Активные'},
+                {value: 'completed', text: this.isMobile ? 'Готово' : 'Завершённые'}
+            ],
+            id: 'filterSelect',
+            onChange: (e) => {
+                this.currentFilter = e.target.value;
+                this.renderTasks();
+            }
         });
         
         filterGroup.appendChild(filterLabel);
         filterGroup.appendChild(filterSelect);
 
-        // Sort
-        const sortGroup = this.createElement('div', {className: 'control-group'});
-        const sortLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🦇' : '🦇 Сортировка:'});
-        const sortSelect = this.createElement('select', {className: 'control-select', id: 'sortSelect'});
-        
-        const sortOptions = [
-            {value: 'date-desc', text: this.isMobile ? '📅 Новые' : 'Дата (новые)'},
-            {value: 'date-asc', text: this.isMobile ? '📅 Старые' : 'Дата (старые)'},
-            {value: 'text', text: this.isMobile ? '🔤 По имени' : 'По названию'}
-        ];
-        
-        sortOptions.forEach(option => {
-            const optElement = this.createElement('option', {value: option.value, textContent: option.text});
-            sortSelect.appendChild(optElement);
+        const sortGroup = createElement('div', {className: 'control-group'});
+        const sortLabel = createElement('span', {className: 'control-label', textContent: this.isMobile ? '🦇' : '🦇 Сортировка:'});
+        const sortSelect = createSelect({
+            options: [
+                {value: 'date-desc', text: this.isMobile ? '📅 Новые' : 'Дата (новые)'},
+                {value: 'date-asc', text: this.isMobile ? '📅 Старые' : 'Дата (старые)'},
+                {value: 'text', text: this.isMobile ? '🔤 По имени' : 'По названию'}
+            ],
+            id: 'sortSelect',
+            onChange: (e) => {
+                this.currentSort = e.target.value;
+                this.renderTasks();
+            }
         });
         
         sortGroup.appendChild(sortLabel);
         sortGroup.appendChild(sortSelect);
 
-        // Search
-        const searchGroup = this.createElement('div', {className: 'control-group'});
-        const searchLabel = this.createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔍' : '🔍 Поиск:'});
-        const searchInput = this.createElement('input', {
+        const searchGroup = createElement('div', {className: 'control-group'});
+        const searchLabel = createElement('span', {className: 'control-label', textContent: this.isMobile ? '🔍' : '🔍 Поиск:'});
+        const searchInput = createInput({
             type: 'text',
             className: 'control-input',
             placeholder: this.isMobile ? 'Поиск...' : 'Поиск жутких задач...',
@@ -126,17 +121,16 @@ class TodoApp {
         searchGroup.appendChild(searchLabel);
         searchGroup.appendChild(searchInput);
 
-        // Bulk Actions
-        const bulkGroup = this.createElement('div', {className: 'control-group'});
-        const selectAllBtn = this.createElement('button', {
-            className: 'btn btn-secondary',
-            textContent: '☑ Все',
-            id: 'selectAllBtn'
+        const bulkGroup = createElement('div', {className: 'control-group'});
+        const selectAllBtn = createButton({
+            text: '☑ Все',
+            className: 'btn-secondary',
+            onClick: () => this.selectAllTasks()
         });
-        const clearCompletedBtn = this.createElement('button', {
-            className: 'btn btn-secondary',
-            textContent: '🧹 Очистить',
-            id: 'clearCompletedBtn'
+        const clearCompletedBtn = createButton({
+            text: '🧹 Очистить',
+            className: 'btn-secondary',
+            onClick: () => this.clearCompletedTasks()
         });
         
         bulkGroup.appendChild(selectAllBtn);
@@ -147,7 +141,7 @@ class TodoApp {
         controls.appendChild(searchGroup);
         controls.appendChild(bulkGroup);
 
-        const todoList = this.createElement('div', {className: 'todo-list', id: 'todoList'});
+        const todoList = createElement('div', {className: 'todo-list', id: 'todoList'});
 
         container.appendChild(header);
         container.appendChild(todoForm);
@@ -158,570 +152,26 @@ class TodoApp {
         dateInput.valueAsDate = new Date();
     }
 
-    applyHalloweenStyles() {
-        const style = this.createElement('style');
-        style.textContent = `
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: 'Courier New', monospace;
-                background: linear-gradient(135deg, #1a1a1a 0%, #2d1b00 100%);
-                min-height: 100vh;
-                padding: 10px;
-                color: #ff6b00;
-            }
-
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                background: rgba(26, 26, 26, 0.95);
-                border-radius: 15px;
-                border: 2px solid #ff6b00;
-                box-shadow: 0 0 30px rgba(255, 107, 0, 0.3);
-                overflow: hidden;
-            }
-
-            .header {
-                background: linear-gradient(135deg, #8b0000 0%, #ff4500 100%);
-                color: #ffd700;
-                padding: 20px 15px;
-                text-align: center;
-            }
-
-            .header h1 {
-                font-size: 1.8rem;
-                margin-bottom: 8px;
-                text-shadow: 2px 2px 0 #000;
-            }
-
-            .header p {
-                opacity: 0.9;
-                font-size: 0.9rem;
-            }
-
-            .todo-form {
-                padding: 20px 15px;
-                background: rgba(139, 0, 0, 0.1);
-                border-bottom: 2px solid #ff6b00;
-            }
-
-            .form-group {
-                display: flex;
-                gap: 10px;
-                margin-bottom: 15px;
-                flex-direction: column;
-            }
-
-            .form-input {
-                padding: 12px 15px;
-                border: 2px solid #ff6b00;
-                border-radius: 8px;
-                font-size: 16px;
-                background: rgba(26, 26, 26, 0.8);
-                color: #ffd700;
-                font-family: 'Courier New', monospace;
-                width: 100%;
-            }
-
-            .form-input:focus {
-                outline: none;
-                border-color: #ffd700;
-                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            }
-
-            .btn {
-                padding: 12px 20px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-                transition: all 0.3s;
-                font-family: 'Courier New', monospace;
-                width: 100%;
-            }
-
-            .btn-primary {
-                background: linear-gradient(135deg, #ff6b00 0%, #8b0000 100%);
-                color: #ffd700;
-                border: 2px solid #ffd700;
-            }
-
-            .btn-primary:hover {
-                background: linear-gradient(135deg, #ff4500 0%, #660000 100%);
-                transform: translateY(-2px);
-            }
-
-            .btn-secondary {
-                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-                color: white;
-                border: 1px solid #dee2e6;
-                padding: 8px 12px;
-                font-size: 14px;
-                width: auto;
-            }
-
-            .btn-secondary:hover {
-                background: linear-gradient(135deg, #5a6268 0%, #3d4348 100%);
-            }
-
-            .controls {
-                padding: 15px;
-                background: rgba(139, 0, 0, 0.1);
-                border-bottom: 2px solid #ff6b00;
-                display: flex;
-                gap: 12px;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-
-            .control-group {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex: 1;
-                min-width: 120px;
-            }
-
-            .control-label {
-                font-weight: 600;
-                color: #ffd700;
-                font-size: 0.9rem;
-                white-space: nowrap;
-            }
-
-            .control-select,
-            .control-input {
-                padding: 8px 10px;
-                border: 2px solid #ff6b00;
-                border-radius: 6px;
-                font-size: 14px;
-                background: rgba(26, 26, 26, 0.8);
-                color: #ffd700;
-                font-family: 'Courier New', monospace;
-                flex: 1;
-                min-width: 0;
-            }
-
-            .todo-list {
-                padding: 0;
-                min-height: 300px;
-                background: rgba(26, 26, 26, 0.9);
-            }
-
-            .todo-item {
-                display: flex;
-                align-items: flex-start;
-                padding: 15px;
-                border-bottom: 1px solid #ff6b00;
-                background: rgba(40, 40, 40, 0.8);
-                transition: all 0.3s;
-                cursor: grab;
-                gap: 12px;
-            }
-
-            .todo-item:hover {
-                background: rgba(139, 0, 0, 0.2);
-            }
-
-            .todo-item.dragging {
-                opacity: 0.5;
-                background: rgba(139, 0, 0, 0.3);
-            }
-
-            .todo-item.completed {
-                background: rgba(0, 100, 0, 0.2);
-                opacity: 0.8;
-            }
-
-            .todo-checkbox {
-                width: 20px;
-                height: 20px;
-                margin-top: 2px;
-                cursor: pointer;
-                accent-color: #ff6b00;
-                flex-shrink: 0;
-            }
-
-            .todo-content {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                min-width: 0;
-            }
-
-            .todo-text {
-                font-size: 14px;
-                color: #ffd700;
-                line-height: 1.4;
-                word-break: break-word;
-            }
-
-            .todo-item.completed .todo-text {
-                text-decoration: line-through;
-                color: #ff6b00;
-            }
-
-            .todo-date {
-                font-size: 11px;
-                color: #ff6b00;
-            }
-
-            .todo-actions {
-                display: flex;
-                gap: 8px;
-                flex-shrink: 0;
-            }
-
-            .btn-edit,
-            .btn-delete {
-                padding: 6px 10px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 12px;
-                transition: all 0.3s;
-                min-width: 40px;
-            }
-
-            .btn-edit {
-                background: #ffd700;
-                color: #8b0000;
-            }
-
-            .btn-edit:hover {
-                background: #ffed4e;
-            }
-
-            .btn-delete {
-                background: #8b0000;
-                color: #ffd700;
-            }
-
-            .btn-delete:hover {
-                background: #a00;
-            }
-
-            .empty-state {
-                text-align: center;
-                padding: 40px 20px;
-                color: #ff6b00;
-            }
-
-            .empty-state h3 {
-                margin-bottom: 10px;
-                font-size: 1.2rem;
-            }
-
-            .empty-state p {
-                font-size: 0.9rem;
-            }
-
-            .edit-form {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px;
-                background: rgba(139, 0, 0, 0.2);
-                border-radius: 8px;
-                margin-top: 10px;
-                border: 2px solid #ffd700;
-            }
-
-            .edit-input {
-                padding: 10px;
-                border: 2px solid #ff6b00;
-                border-radius: 6px;
-                font-size: 14px;
-                background: rgba(26, 26, 26, 0.9);
-                color: #ffd700;
-                width: 100%;
-            }
-
-            .edit-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .btn-save {
-                background: #008000;
-                color: #ffd700;
-                flex: 1;
-            }
-
-            .btn-save:hover {
-                background: #00a000;
-            }
-
-            .btn-cancel {
-                background: #666;
-                color: #ffd700;
-                flex: 1;
-            }
-
-            .btn-cancel:hover {
-                background: #888;
-            }
-
-            @media (min-width: 769px) {
-                body {
-                    padding: 20px;
-                }
-
-                .header {
-                    padding: 30px;
-                }
-
-                .header h1 {
-                    font-size: 2.5rem;
-                    margin-bottom: 10px;
-                }
-
-                .header p {
-                    font-size: 1rem;
-                }
-
-                .todo-form {
-                    padding: 30px;
-                }
-
-                .form-group {
-                    flex-direction: row;
-                    gap: 15px;
-                }
-
-                .form-input {
-                    width: auto;
-                    flex: 1;
-                }
-
-                .btn {
-                    width: auto;
-                    padding: 12px 25px;
-                }
-
-                .btn-secondary {
-                    padding: 10px 15px;
-                }
-
-                .controls {
-                    padding: 20px 30px;
-                    gap: 15px;
-                }
-
-                .control-group {
-                    flex: none;
-                    min-width: auto;
-                }
-
-                .control-label {
-                    font-size: 1rem;
-                }
-
-                .todo-list {
-                    min-height: 400px;
-                }
-
-                .todo-item {
-                    align-items: center;
-                    padding: 20px 30px;
-                    gap: 15px;
-                }
-
-                .todo-checkbox {
-                    margin-top: 0;
-                    margin-right: 0;
-                }
-
-                .todo-text {
-                    font-size: 16px;
-                }
-
-                .todo-date {
-                    font-size: 12px;
-                }
-
-                .btn-edit,
-                .btn-delete {
-                    padding: 8px 12px;
-                    font-size: 14px;
-                    min-width: auto;
-                }
-
-                .empty-state {
-                    padding: 60px 30px;
-                }
-
-                .empty-state h3 {
-                    font-size: 1.5rem;
-                }
-
-                .empty-state p {
-                    font-size: 1rem;
-                }
-            }
-
-            @media (min-width: 481px) and (max-width: 768px) {
-                .form-group {
-                    flex-direction: row;
-                    flex-wrap: wrap;
-                }
-
-                .form-input {
-                    min-width: 200px;
-                }
-
-                .btn {
-                    width: auto;
-                    min-width: 140px;
-                }
-
-                .controls {
-                    justify-content: center;
-                }
-
-                .control-group {
-                    flex: none;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .container {
-                    border-radius: 10px;
-                    margin: 5px;
-                }
-
-                .header {
-                    padding: 15px 10px;
-                }
-
-                .header h1 {
-                    font-size: 1.5rem;
-                }
-
-                .header p {
-                    font-size: 0.8rem;
-                }
-
-                .todo-form {
-                    padding: 15px 10px;
-                }
-
-                .controls {
-                    padding: 10px;
-                    gap: 8px;
-                    flex-direction: column;
-                }
-
-                .control-group {
-                    min-width: 100px;
-                    width: 100%;
-                    justify-content: space-between;
-                }
-
-                .control-label {
-                    font-size: 0.8rem;
-                }
-
-                .control-select,
-                .control-input {
-                    padding: 6px 8px;
-                    font-size: 12px;
-                    width: 60%;
-                }
-
-                .btn-secondary {
-                    width: 48%;
-                    padding: 8px 10px;
-                    font-size: 12px;
-                }
-
-                .todo-item {
-                    padding: 12px 10px;
-                }
-
-                .todo-actions {
-                    flex-direction: column;
-                    gap: 4px;
-                }
-
-                .btn-edit,
-                .btn-delete {
-                    padding: 4px 8px;
-                    font-size: 11px;
-                    min-width: 35px;
-                }
-            }
-
-            @media (max-width: 320px) {
-                .header h1 {
-                    font-size: 1.3rem;
-                }
-
-                .control-group {
-                    min-width: 90px;
-                }
-
-                .todo-text {
-                    font-size: 13px;
-                }
-
-                .todo-date {
-                    font-size: 10px;
-                }
-            }
-
-            @media (hover: none) and (pointer: coarse) {
-                .btn:hover,
-                .btn-edit:hover,
-                .btn-delete:hover {
-                    transform: none;
-                }
-
-                .todo-item:hover {
-                    transform: none;
-                    background: rgba(40, 40, 40, 0.8);
-                }
-
-                .todo-item:active {
-                    background: rgba(139, 0, 0, 0.2);
-                }
-
-                .btn:active,
-                .btn-edit:active,
-                .btn-delete:active {
-                    transform: scale(0.98);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
     createTaskElement(task) {
-        const taskElement = this.createElement('div', {
+        const taskElement = createElement('div', {
             className: `todo-item ${task.completed ? 'completed' : ''}`,
-            'data-task-id': task.id,
+            dataset: { taskId: task.id },
             draggable: !this.isMobile 
         });
         
-        const checkbox = this.createElement('input', {
+        const checkbox = createElement('input', {
             type: 'checkbox',
             className: 'todo-checkbox',
             checked: task.completed
         });
         
-        const content = this.createElement('div', {className: 'todo-content'});
-        const text = this.createElement('div', { 
+        const content = createElement('div', {className: 'todo-content'});
+        const text = createElement('div', { 
             className: 'todo-text',
             textContent: task.text 
         });
         
-        const date = this.createElement('div', { 
+        const date = createElement('div', { 
             className: 'todo-date',
             textContent: this.formatDate(task.date) 
         });
@@ -729,15 +179,17 @@ class TodoApp {
         content.appendChild(text);
         content.appendChild(date);
         
-        const actions = this.createElement('div', {className: 'todo-actions'});
-        const editBtn = this.createElement('button', {
+        const actions = createElement('div', {className: 'todo-actions'});
+        const editBtn = createButton({
+            text: this.isMobile ? '✏️' : '🔮',
             className: 'btn-edit',
-            textContent: this.isMobile ? '✏️' : '🔮'
+            onClick: () => this.showEditForm(taskElement, task)
         });
         
-        const deleteBtn = this.createElement('button', {
+        const deleteBtn = createButton({
+            text: this.isMobile ? '🗑️' : '💥',
             className: 'btn-delete',
-            textContent: this.isMobile ? '🗑️' : '💥'
+            onClick: () => this.showDeleteConfirm(task.id, task.text)
         });
         
         actions.appendChild(editBtn);
@@ -747,8 +199,6 @@ class TodoApp {
         taskElement.appendChild(actions);
         
         checkbox.addEventListener('change', () => this.toggleTask(task.id));
-        deleteBtn.addEventListener('click', () => this.deleteTask(task.id));
-        editBtn.addEventListener('click', () => this.showEditForm(taskElement, task));
         
         if (this.isMobile) {
             this.addMobileTouchEvents(taskElement);
@@ -782,12 +232,12 @@ class TodoApp {
         const task = this.tasks.find(t => t.id === taskId);
         
         if (task) {
-            const action = confirm(`${task.text}\n\nВыберите действие:\nOK - редактировать\nОтмена - удалить`);
-            if (action) {
-                this.showEditForm(taskElement, task);
-            } else {
-                this.deleteTask(taskId);
-            }
+            this.modal.show({
+                title: 'Действие с задачей',
+                message: `${task.text}\n\nВыберите действие:`,
+                onConfirm: () => this.showEditForm(taskElement, task),
+                onCancel: () => this.showDeleteConfirm(taskId, task.text)
+            });
         }
     }
 
@@ -796,25 +246,10 @@ class TodoApp {
             if (e.key === 'Enter') this.addTask();
         });
         
-        document.querySelector('.btn-primary').addEventListener('click', () => this.addTask());
-        
-        document.getElementById('filterSelect').addEventListener('change', (e) => {
-            this.currentFilter = e.target.value;
-            this.renderTasks();
-        });
-        
-        document.getElementById('sortSelect').addEventListener('change', (e) => {
-            this.currentSort = e.target.value;
-            this.renderTasks();
-        });
-        
         document.getElementById('searchInput').addEventListener('input', (e) => {
             this.currentSearch = e.target.value.toLowerCase();
             this.renderTasks();
         });
-
-        document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllTasks());
-        document.getElementById('clearCompletedBtn').addEventListener('click', () => this.clearCompletedTasks());
     }
 
     addTask() {
@@ -825,7 +260,7 @@ class TodoApp {
         const date = dateInput.value;
         
         if (!text) {
-            alert('💀 Введите жуткую задачу!');
+            this.showMessage('💀 Введите жуткую задачу!');
             return;
         }
         
@@ -845,12 +280,16 @@ class TodoApp {
         taskInput.focus();
     }
 
-    deleteTask(taskId) {
-        if (confirm('🧨 Уверены, что хотите уничтожить эту задачу?')) {
-            this.tasks = this.tasks.filter(task => task.id !== taskId);
-            this.saveTasks();
-            this.renderTasks();
-        }
+    showDeleteConfirm(taskId, taskText) {
+        this.modal.show({
+            title: 'Удаление задачи',
+            message: `🧨 Уверены, что хотите уничтожить задачу?\n"${taskText}"`,
+            onConfirm: () => {
+                this.tasks = this.tasks.filter(task => task.id !== taskId);
+                this.saveTasks();
+                this.renderTasks();
+            }
+        });
     }
 
     toggleTask(taskId) {
@@ -874,15 +313,19 @@ class TodoApp {
     clearCompletedTasks() {
         const completedTasks = this.tasks.filter(task => task.completed);
         if (completedTasks.length === 0) {
-            alert('🎃 Нет выполненных задач для очистки!');
+            this.showMessage('🎃 Нет выполненных задач для очистки!');
             return;
         }
 
-        if (confirm(`🧹 Удалить ${completedTasks.length} выполненных задач?`)) {
-            this.tasks = this.tasks.filter(task => !task.completed);
-            this.saveTasks();
-            this.renderTasks();
-        }
+        this.modal.show({
+            title: 'Очистка задач',
+            message: `🧹 Удалить ${completedTasks.length} выполненных задач?`,
+            onConfirm: () => {
+                this.tasks = this.tasks.filter(task => !task.completed);
+                this.saveTasks();
+                this.renderTasks();
+            }
+        });
     }
 
     editTask(taskId, newText, newDate) {
@@ -903,14 +346,14 @@ class TodoApp {
         filteredTasks = this.sortTasks(filteredTasks);
         
         if (filteredTasks.length === 0) {
-            const emptyState = this.createElement('div', {className: 'empty-state'});
+            const emptyState = createElement('div', {className: 'empty-state'});
             const messages = this.isMobile ? 
                 ['🕸️ Пусто...', '👻 Нет задач!', '🎃 Ничего нет'] :
                 ['🕸️ Паутина пуста...', '👻 Привидения разбежались!', '🎃 Тыквы молчат...'];
             const randomMessage = messages[Math.floor(Math.random() * messages.length)];
             
-            const h3 = this.createElement('h3', {textContent: randomMessage});
-            const p = this.createElement('p', {
+            const h3 = createElement('h3', {textContent: randomMessage});
+            const p = createElement('p', {
                 textContent: this.tasks.length === 0 ? 
                     (this.isMobile ? 'Добавьте задачу!' : 'Добавьте первую жуткую задачу!') : 
                     'Попробуйте изменить фильтры'
@@ -965,30 +408,30 @@ class TodoApp {
     }
 
     showEditForm(taskElement, task) {
-        const editForm = this.createElement('div', {className: 'edit-form'});
+        const editForm = createElement('div', {className: 'edit-form'});
         
-        const textInput = this.createElement('input', {
+        const textInput = createInput({
             type: 'text',
             className: 'edit-input',
             value: task.text,
             placeholder: this.isMobile ? 'Редактировать...' : 'Измените жуткую задачу...'
         });
         
-        const dateInput = this.createElement('input', {
+        const dateInput = createInput({
             type: 'date',
             className: 'edit-input',
             value: task.date
         });
         
-        const actions = this.createElement('div', {className: 'edit-actions'});
-        const saveBtn = this.createElement('button', {
-            className: 'btn btn-save',
-            textContent: this.isMobile ? '💾' : '💾 Сохранить'
+        const actions = createElement('div', {className: 'edit-actions'});
+        const saveBtn = createButton({
+            text: this.isMobile ? '💾' : '💾 Сохранить',
+            className: 'btn-save'
         });
         
-        const cancelBtn = this.createElement('button', {
-            className: 'btn btn-cancel',
-            textContent: this.isMobile ? '❌' : '🚫 Отмена'
+        const cancelBtn = createButton({
+            text: this.isMobile ? '❌' : '🚫 Отмена',
+            className: 'btn-cancel'
         });
         
         actions.appendChild(saveBtn);
@@ -1072,16 +515,13 @@ class TodoApp {
         return new Date(dateString).toLocaleDateString('ru-RU', options);
     }
 
-    createElement(tag, attributes = {}) {
-        const element = document.createElement(tag);
-        Object.keys(attributes).forEach(key => {
-            if (key === 'className') {
-                element.className = attributes[key];
-            } else {
-                element[key] = attributes[key];
-            }
+    showMessage(message) {
+        this.modal.show({
+            title: 'Сообщение',
+            message: message,
+            onConfirm: () => {},
+            onCancel: null
         });
-        return element;
     }
 
     saveTasks() {
@@ -1091,10 +531,6 @@ class TodoApp {
     loadTasks() {
         const saved = localStorage.getItem('halloweenTodoTasks');
         return saved ? JSON.parse(saved) : [];
-    }
-
-    addHalloweenEffects() {
-        console.log('🎃 Хэллуинские эффекты активированы!');
     }
 }
 
